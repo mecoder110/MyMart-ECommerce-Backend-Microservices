@@ -1,0 +1,23 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+
+# Build outputs
+target/
+build/
+out/
+
+# Logs
+*.log
+
+# Dependency caches
+*.class
+*.jar
+*.war
+
+l̥
