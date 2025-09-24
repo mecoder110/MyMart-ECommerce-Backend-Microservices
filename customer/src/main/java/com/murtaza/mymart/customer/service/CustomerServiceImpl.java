@@ -1,6 +1,8 @@
 package com.murtaza.mymart.customer.service;
 
 import com.murtaza.mymart.customer.entity.Customer;
+import com.murtaza.mymart.customer.exception.ApiException;
+import com.murtaza.mymart.customer.exception.NoResourceFoundException;
 import com.murtaza.mymart.customer.model.CustomerDto;
 import com.murtaza.mymart.customer.model.PasswordDto;
 import com.murtaza.mymart.customer.repository.CustomerRepository;
@@ -22,7 +24,7 @@ public class CustomerServiceImpl implements CustomerService {
         Customer customer = modelMapper.map(customerDto, Customer.class);
 
         if (customerRepository.findByEmail(customerDto.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already taken");
+            throw new ApiException("Customer : ","Email already taken!",409);
         }
         customer.setPwd(RandomPwdGenerator.generate(6));
         customer.setPwdUpdated("NO");
@@ -33,9 +35,10 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public boolean login(PasswordDto passwordDto) {
-        Customer customer = customerRepository.findByEmail(passwordDto.getEmail()).orElseThrow(() -> new RuntimeException("Resourse not found"));
+        Customer customer = customerRepository.findByEmail(passwordDto.getEmail()).orElseThrow(()->
+               new NoResourceFoundException(passwordDto.getEmail()," Record not found!",404));
         if (!passwordDto.getCurrentPwd().equals(customer.getPwd())) {
-            throw new RuntimeException("Email or Pwd wrong");
+            throw new ApiException("Customer ","Email or Password may not correct!",404);
         }
         return true;
     }
@@ -44,10 +47,11 @@ public class CustomerServiceImpl implements CustomerService {
     public boolean resetPwd(PasswordDto passwordDto) {
         Customer customer = customerRepository.findByEmail(passwordDto.getEmail()).orElseThrow(() -> new RuntimeException("Resourse not found"));
         if (!passwordDto.getCurrentPwd().equals(customer.getPwd())) {
-            throw new RuntimeException("Email or Pwd wrong");
+            throw new ApiException("Customer ","Email or Password may not correct!",404);
+
         }
         if (passwordDto.getNewPwd() == null && passwordDto.getNewPwd().trim() == "") {
-            throw new RuntimeException(" Empty Password");
+            throw new ApiException("Customer : "," Password can not be empty",409);
         }
         customer.setPwd(passwordDto.getNewPwd());
         customer.setPwdUpdated("YES");
@@ -57,7 +61,8 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public CustomerDto retrieveCustomerByEmail(String email) {
-        Customer customer = customerRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Resourse not found"));
+        Customer customer = customerRepository.findByEmail(email).orElseThrow(() ->
+                new NoResourceFoundException(email," Record not found!",404));
         return modelMapper.map(customer, CustomerDto.class);
 
     }
