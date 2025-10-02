@@ -1,15 +1,12 @@
 package com.murtaza.mymart.order.entity;
 
-import jakarta.persistence.Entity;
-import lombok.Getter;
-import lombok.Setter;
-
 import java.util.List;
 
-@Entity
-@Setter
-@Getter
+
 public class OrderRequest {
+
+
+    private Integer id;
 
     private Customer customer;
     private Address address;

@@ -3,7 +3,7 @@ package com.murtaza.mymart.order.model;
 import lombok.Data;
 
 @Data
-public class OrderItem {
+public class OrderItemDTO {
 
     private int quantity;
     private double unitPrice;

@@ -3,7 +3,7 @@ package com.murtaza.mymart.order.model;
 import lombok.Data;
 
 @Data
-public class Order {
+public class OrderDTO {
 
     private String email;
     private double totalPrice;
