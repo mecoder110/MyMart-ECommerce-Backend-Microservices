@@ -3,6 +3,11 @@ package com.murtaza.mymart.order.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.sql.Timestamp;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "orders")
@@ -16,8 +21,21 @@ public class Order {
     private String email;
     private double totalPrice;
     private int totalQuantity;
+    @CreationTimestamp
+    private Timestamp createdAt;
+    @UpdateTimestamp
+    private Timestamp updatedAt;
 
     private String razorpayOrderId;
     private String orderStatus;
     private String orderTrackingNumber;
+
+    private LocalDate deliveryDate;
+    @ManyToOne
+    @JoinColumn(name = "customer_id")
+    private Customer customer;
+    @ManyToOne
+    @JoinColumn(name = "address_id")
+    private Address address;
+
 }

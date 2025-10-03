@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -48,23 +49,36 @@ public class OrderServiceImpl implements OrderService {
         Customer customerDb = customerRepository.save(modelMapper
                 .map(orderRequestDTO.getCustomerDTO(), Customer.class));
         // save shipping address
-        Address addressDb = addressRepository.save(modelMapper
-                .map(orderRequestDTO.getAddress(), Address.class));
+        Address shippingAddr = modelMapper
+                .map(orderRequestDTO.getAddress(), Address.class);
+        shippingAddr.setCustomer(customerDb);
+        Address addressDb = addressRepository.save(shippingAddr);
 
+        //Order creation
         Order order = modelMapper.map(orderRequestDTO.getOrderDTO(), Order.class);
         try {
             Order fromRazor = createPayment(order.getTotalPrice(), "INR", order.getEmail());
             order.setOrderStatus(fromRazor.getOrderStatus());
             order.setRazorpayOrderId(fromRazor.getRazorpayOrderId());
             order.setOrderTrackingNumber(fromRazor.getOrderTrackingNumber());
+            order.setDeliveryDate(LocalDate.now().plusDays(7));
         } catch (Exception e) {
             e.printStackTrace();
         }
+        order.setCustomer(customerDb);
+        order.setAddress(shippingAddr);
+        if (order.getRazorpayOrderId() != null && order.getRazorpayOrderId() != "") {
+            Order orderDb = orderRepository.save(order);
+            List<OrderItem> orderItemList = orderRequestDTO.getOrderItemDTOS().stream().map(item ->
+                    {
+                        OrderItem orderItem = modelMapper.map(item, OrderItem.class);
+                        orderItem.setOrder(orderDb);
+                        return orderItem;
+                    }
+            ).toList();
+            List<OrderItem> orderItemsDb = orderItemRepository.saveAll(orderItemList);
+        }
 
-        Order orderDb = orderRepository.save(order);
-        List<OrderItem> orderItemList = orderRequestDTO.getOrderItemDTOS().stream().map(item ->
-                modelMapper.map(item, OrderItem.class)).toList();
-        List<OrderItem> orderItemsDb = orderItemRepository.saveAll(orderItemList);
 
         OrderResponseDTO orderResponseDTO = new OrderResponseDTO();
         orderResponseDTO.setRazorpayOrderId(order.getRazorpayOrderId());

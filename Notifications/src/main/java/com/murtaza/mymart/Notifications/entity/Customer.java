@@ -1,9 +1,6 @@
-package com.murtaza.mymart.order.entity;
+package com.murtaza.mymart.Notifications.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,8 +15,5 @@ public class Customer {
     private String name;
     private String email;
     private String phoneNo;
-
-
-
 
 }
