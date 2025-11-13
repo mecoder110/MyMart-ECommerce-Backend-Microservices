@@ -2,7 +2,7 @@ package com.murtaza.mymart.product.service;
 
 import com.murtaza.mymart.product.entity.Category;
 import com.murtaza.mymart.product.exception.NoResourceFoundException;
-import com.murtaza.mymart.product.model.CategortDto;
+import com.murtaza.mymart.product.model.CategoryDto;
 import com.murtaza.mymart.product.repository.CategoryRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,16 +20,16 @@ public class CategoryServiceImpl implements CategoryService {
     private ModelMapper modelMapper;
 
     @Override
-    public List<CategortDto> getCategories() {
+    public List<CategoryDto> getAllCategory() {
         return categoryRepository.findAll().stream().map(category ->
-                modelMapper.map(category, CategortDto.class)).toList();
+                modelMapper.map(category, CategoryDto.class)).toList();
     }
 
     @Override
-    public CategortDto getCategoryById(Integer categoryId) {
+    public CategoryDto getCategoryById(Integer categoryId) {
         Category category = categoryRepository.findById(categoryId).orElseThrow(() ->
                 new NoResourceFoundException("Category", "Resource not found with Id", categoryId, 404));
 
-        return modelMapper.map(category, CategortDto.class);
+        return modelMapper.map(category, CategoryDto.class);
     }
 }

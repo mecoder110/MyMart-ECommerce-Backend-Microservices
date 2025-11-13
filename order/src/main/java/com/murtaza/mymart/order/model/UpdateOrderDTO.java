@@ -5,8 +5,10 @@ import lombok.Data;
 @Data
 public class UpdateOrderDTO {
 
-    private String razorpayOrderId;
-    private String orderStatus;
-    private String orderTrackingNumber;
     private String razorpayPaymentId;
+    private String orderStatus;
+    private String orderTrackingNum;
+    private String paymentStatus;
+    private String razorpayOrderId;
+
 }

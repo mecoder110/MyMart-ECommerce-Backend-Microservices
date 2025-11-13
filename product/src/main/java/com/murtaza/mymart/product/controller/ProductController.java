@@ -1,7 +1,7 @@
 package com.murtaza.mymart.product.controller;
 
-import com.murtaza.mymart.product.model.APIResponse;
-import com.murtaza.mymart.product.model.CategortDto;
+import com.murtaza.mymart.product.response.APIResponse;
+import com.murtaza.mymart.product.model.CategoryDto;
 import com.murtaza.mymart.product.model.ProductDto;
 import com.murtaza.mymart.product.service.CategoryService;
 import com.murtaza.mymart.product.service.ProductService;
@@ -21,8 +21,8 @@ public class ProductController {
     private ProductService productService;
 
     @GetMapping("getCategories/")
-    public ResponseEntity<APIResponse<CategortDto>> getCategories() {
-        List<CategortDto> categories = categoryService.getCategories();
+    public ResponseEntity<APIResponse<CategoryDto>> getCategories() {
+        List<CategoryDto> categories = categoryService.getAllCategory();
         APIResponse body = new APIResponse();
         body.setMessage("Category List Found");
         body.setStatusCode(200);
@@ -31,8 +31,8 @@ public class ProductController {
     }
 
     @GetMapping("getCategories/{categoryId}")
-    public ResponseEntity<APIResponse<CategortDto>> getCategoryById(@PathVariable Integer categoryId) {
-        CategortDto category = categoryService.getCategoryById(categoryId);
+    public ResponseEntity<APIResponse<CategoryDto>> getCategoryById(@PathVariable Integer categoryId) {
+        CategoryDto category = categoryService.getCategoryById(categoryId);
         APIResponse body = new APIResponse();
         body.setMessage("Category Found");
         body.setStatusCode(200);
@@ -42,7 +42,7 @@ public class ProductController {
     //============ Product ===============//
 
     @GetMapping("getProducts/{categoryId}")
-    public ResponseEntity<APIResponse<CategortDto>> getProdtuctByCategory(@PathVariable Integer categoryId) {
+    public ResponseEntity<APIResponse<CategoryDto>> getProdtuctByCategory(@PathVariable Integer categoryId) {
         List<ProductDto> productDtos = productService.allProductByCategoryId(categoryId);
         APIResponse body = new APIResponse();
         body.setMessage("Product List Found");
@@ -52,7 +52,7 @@ public class ProductController {
     }
 
     @GetMapping("getProducts/")
-    public ResponseEntity<APIResponse<CategortDto>> getAllProdtuct() {
+    public ResponseEntity<APIResponse<CategoryDto>> getAllProdtuct() {
         List<ProductDto> productDtos = productService.allProduct();
         APIResponse body = new APIResponse();
         body.setMessage("Product List Found");
@@ -62,8 +62,8 @@ public class ProductController {
     }
 
     @GetMapping("searchProducts/{keyword}")
-    public ResponseEntity<APIResponse<CategortDto>> searchProdtucts(@PathVariable String keyword) {
-        List<ProductDto> productDtos = productService.allMatchByKeywords(keyword);
+    public ResponseEntity<APIResponse<CategoryDto>> searchProdtucts(@PathVariable String keyword) {
+        List<ProductDto> productDtos = productService.allProductByKeywords(keyword);
         APIResponse body = new APIResponse();
         body.setMessage("Product List Found");
         body.setStatusCode(200);
@@ -72,7 +72,7 @@ public class ProductController {
     }
 
     @GetMapping("getProduct/{productId}")
-    public ResponseEntity<APIResponse<CategortDto>> getProductById(@PathVariable Integer productId) {
+    public ResponseEntity<APIResponse<CategoryDto>> getProductById(@PathVariable Integer productId) {
         ProductDto productDto = productService.productByProductId(productId);
         APIResponse body = new APIResponse();
         body.setMessage("Product List Found");

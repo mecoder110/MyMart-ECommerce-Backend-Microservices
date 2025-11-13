@@ -6,6 +6,8 @@ import lombok.Data;
 public class OrderResponseDTO {
 
     private String razorpayOrderId;
+    private String paymentStatus;
     private String orderStatus;
     private String orderTrackingNumber;
+    private String razorpayPaymentId;
 }

@@ -1,13 +1,12 @@
-package com.murtaza.mymart.product.model;
+package com.murtaza.mymart.product.response;
 
 import lombok.Data;
 
 @Data
 public class APIResponse<T> {
 
-    private int statusCode;
+    private Integer statusCode;
     private String message;
-
     private T data;
 
 }

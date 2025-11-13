@@ -18,9 +18,9 @@ public class ShippingAddressController {
     @Autowired
     AddressService addressService;
 
-    @PostMapping("/new-address")
-    public ResponseEntity<ApiResponse<Boolean>> saveAddress(@RequestBody ShippingAddressDto addressDto) {
-        boolean addrSaved = addressService.saveAddress(addressDto);
+    @PostMapping("/new-address/{customerId}")
+    public ResponseEntity<ApiResponse<Boolean>> saveAddress(@PathVariable Integer customerId, @RequestBody ShippingAddressDto addressDto) {
+        boolean addrSaved = addressService.saveAddress(addressDto, customerId);
 
         ApiResponse body = new ApiResponse();
         body.setStatusCode(200);
@@ -44,7 +44,7 @@ public class ShippingAddressController {
 
     @GetMapping("/retrieve-customerAddress/{customerId}")
     public ResponseEntity<ApiResponse<Boolean>> retrieveAllAddressByCustomer(@PathVariable Integer customerId) {
-        List<ShippingAddressDto> shippingAddressDtos = addressService.retrieveAddressByCustomerId(customerId);
+        List<ShippingAddressDto> shippingAddressDtos = addressService.getCustomerAddress(customerId);
 
         ApiResponse body = new ApiResponse();
         body.setStatusCode(200);
@@ -56,7 +56,7 @@ public class ShippingAddressController {
 
     @GetMapping("/retrieve-address/{addressId}")
     public ResponseEntity<ApiResponse<Boolean>> retrieveAddressById(@PathVariable Integer addressId) {
-        ShippingAddressDto shippingAddressDto = addressService.retrieveAddressById(addressId);
+        ShippingAddressDto shippingAddressDto = addressService.getAddress(addressId);
 
         ApiResponse body = new ApiResponse();
         body.setStatusCode(200);
@@ -68,7 +68,7 @@ public class ShippingAddressController {
 
     @DeleteMapping("/remove-address/{addressId}")
     public ResponseEntity<ApiResponse<Boolean>> deleteAddressById(@PathVariable Integer addressId) {
-        boolean addressDeleted = addressService.deleteAddressById(addressId);
+        boolean addressDeleted = addressService.deleteAddress(addressId);
 
         ApiResponse body = new ApiResponse();
         body.setStatusCode(200);

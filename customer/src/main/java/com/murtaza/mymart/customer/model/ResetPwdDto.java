@@ -3,7 +3,7 @@ package com.murtaza.mymart.customer.model;
 import lombok.Data;
 
 @Data
-public class PasswordDto {
+public class ResetPwdDto {
 
     private String email;
     private String currentPwd;

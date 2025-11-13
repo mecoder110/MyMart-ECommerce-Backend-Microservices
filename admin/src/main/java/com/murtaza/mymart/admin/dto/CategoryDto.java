@@ -1,9 +1,9 @@
-package com.murtaza.mymart.product.model;
+package com.murtaza.mymart.admin.dto;
 
 import lombok.Data;
 
 @Data
-public class CategortDto {
+public class CategoryDto {
 
     private Integer categoryId;
     private String categoryName;

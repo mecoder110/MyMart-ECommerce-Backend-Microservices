@@ -4,22 +4,25 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-
 @Entity
+@Table(name = "shipping_addr")
 @Setter
 @Getter
-public class Address {
+public class ShippingAddress {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Integer addressId;
     private String houseNum;
     private String street;
     private String city;
     private String state;
-    private String zipCode;
+    private String zipcode;
+    private String country;
+    private String addrType;
+    private boolean deleteSw;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "customer_id")
-    private Customer customer;
+    private CustomerEntity customer;
 }

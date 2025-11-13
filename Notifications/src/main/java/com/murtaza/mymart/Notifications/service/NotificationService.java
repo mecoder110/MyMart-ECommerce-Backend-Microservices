@@ -1,5 +1,6 @@
 package com.murtaza.mymart.Notifications.service;
 
+import com.murtaza.mymart.Notifications.entity.Customer;
 import org.springframework.stereotype.Service;
 
 

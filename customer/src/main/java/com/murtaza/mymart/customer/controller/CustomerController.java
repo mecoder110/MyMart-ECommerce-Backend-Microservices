@@ -2,7 +2,7 @@ package com.murtaza.mymart.customer.controller;
 
 import com.murtaza.mymart.customer.model.ApiResponse;
 import com.murtaza.mymart.customer.model.CustomerDto;
-import com.murtaza.mymart.customer.model.PasswordDto;
+import com.murtaza.mymart.customer.model.ResetPwdDto;
 import com.murtaza.mymart.customer.service.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -39,8 +39,8 @@ public class CustomerController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<Boolean>> customerLogin(@RequestBody PasswordDto passwordDto) {
-        boolean isLogin = customerService.login(passwordDto);
+    public ResponseEntity<ApiResponse<Boolean>> customerLogin(@RequestBody ResetPwdDto resetPwdDto) {
+        boolean isLogin = customerService.login(resetPwdDto);
 
         ApiResponse body = new ApiResponse();
         body.setStatusCode(200);
@@ -51,8 +51,8 @@ public class CustomerController {
     }
 
     @PostMapping("/resetPassword")
-    public ResponseEntity<ApiResponse<Boolean>> resetCustomerPassword(@RequestBody PasswordDto passwordDto) {
-        boolean isPwdUpdated = customerService.resetPwd(passwordDto);
+    public ResponseEntity<ApiResponse<Boolean>> resetCustomerPassword(@RequestBody ResetPwdDto resetPwdDto) {
+        boolean isPwdUpdated = customerService.resetPwd(resetPwdDto);
 
         ApiResponse body = new ApiResponse();
         body.setStatusCode(200);

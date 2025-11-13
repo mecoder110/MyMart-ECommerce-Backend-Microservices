@@ -3,6 +3,10 @@ package com.murtaza.mymart.customer.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDate;
 
 @Entity
 @Setter
@@ -18,5 +22,11 @@ public class Customer {
     private String email;
     private String pwd;
     private String phone;
-    private String pwdUpdated;
+    private boolean pwdUpdated;
+    @CreationTimestamp
+    @Column(name = "created_date", updatable = false)
+    private LocalDate createdDate;
+    @UpdateTimestamp
+    @Column(name = "last_update", insertable = false)
+    private LocalDate lastUpdatedDate;
 }

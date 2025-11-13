@@ -8,6 +8,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
 
 @Entity
 @Setter
@@ -20,17 +21,17 @@ public class Product {
     private String productName;
     private String description;
     private String title;
-    private String imgUrl;
     private double unitPrice;
+    private String imageUrl;
     private boolean active;
-    private Long unitStock;
+    private int unitInStock;
 
     @CreationTimestamp
-    private Timestamp createdDate;
+    private LocalDate dateCreated;
     @UpdateTimestamp
-    private Timestamp updatedDate;
+    private LocalDate lastUpdated;
 
     @ManyToOne
-    @JoinColumn(name = "category_id")
+    @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 }

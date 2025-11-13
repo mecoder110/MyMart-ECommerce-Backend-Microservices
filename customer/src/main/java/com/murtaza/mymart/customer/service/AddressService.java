@@ -6,14 +6,14 @@ import java.util.List;
 
 public interface AddressService {
 
-    public boolean saveAddress(ShippingAddressDto addressDto);
+    public boolean saveAddress(ShippingAddressDto addressDto, Integer customerId);
 
     public boolean updateAddress(ShippingAddressDto addressDto);
 
-    public List<ShippingAddressDto> retrieveAddressByCustomerId(Integer customerId);
+    public List<ShippingAddressDto> getCustomerAddress(Integer customerId);
 
-    public ShippingAddressDto retrieveAddressById(Integer addressId);
+    public ShippingAddressDto getAddress(Integer addressId);
 
-    public boolean deleteAddressById(Integer addressId);
+    public boolean deleteAddress(Integer addressId);
 
 }

@@ -1,129 +1,159 @@
 package com.murtaza.mymart.order.service;
 
-
-import com.murtaza.mymart.order.entity.Address;
-import com.murtaza.mymart.order.entity.Customer;
+import com.murtaza.mymart.order.entity.CustomerEntity;
 import com.murtaza.mymart.order.entity.Order;
 import com.murtaza.mymart.order.entity.OrderItem;
-import com.murtaza.mymart.order.model.OrderRequestDTO;
-import com.murtaza.mymart.order.model.OrderResponseDTO;
-import com.murtaza.mymart.order.model.UpdateOrderDTO;
+import com.murtaza.mymart.order.entity.ShippingAddress;
+import com.murtaza.mymart.order.mapper.AddressMapper;
+import com.murtaza.mymart.order.mapper.CustomerMapper;
+import com.murtaza.mymart.order.mapper.OrderItemMapper;
+import com.murtaza.mymart.order.mapper.OrderMapper;
+import com.murtaza.mymart.order.model.*;
 import com.murtaza.mymart.order.repository.AddressRepository;
 import com.murtaza.mymart.order.repository.CustomerRepository;
 import com.murtaza.mymart.order.repository.OrderItemRepository;
 import com.murtaza.mymart.order.repository.OrderRepository;
-import com.razorpay.RazorpayClient;
-import lombok.extern.java.Log;
-import org.json.JSONObject;
-import org.modelmapper.ModelMapper;
+import com.razorpay.RazorpayException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
 @Service
-@Log
+@Slf4j
 public class OrderServiceImpl implements OrderService {
     @Autowired
-    CustomerRepository customerRepository;
+    private CustomerRepository customerRepository;
     @Autowired
-    AddressRepository addressRepository;
+    private AddressRepository addressRepository;
     @Autowired
-    OrderRepository orderRepository;
+    private OrderRepository orderRepository;
     @Autowired
-    OrderItemRepository orderItemRepository;
+    private OrderItemRepository orderItemRepository;
+
     @Autowired
-    private ModelMapper modelMapper;
+    private RazorPayClientService razorPayClientService;
 
-    @Value("${razorpay.key.id}")
-    private String razorpayKeyId;
+    @Override
+    public OrderResponseDTO createOrder(OrderRequestDTO orderRequestDTO) throws Exception {
+        log.info("== Create OrderRequest");
+        CustomerDTO customerDTO = orderRequestDTO.getCustomerDTO();
 
-    @Value("${razorpay.key.secret}")
-    private String razorpayKeySecret;
+        CustomerEntity customer = customerRepository.findByEmail(customerDTO.getEmail());
+        AddressDTO addressDTO = orderRequestDTO.getAddressDTO();
+        ShippingAddress address = AddressMapper.toEntity(addressDTO);
 
-    public OrderResponseDTO createOrder(OrderRequestDTO orderRequestDTO) {
-        // save customer
-        Customer customerDb = customerRepository.save(modelMapper
-                .map(orderRequestDTO.getCustomerDTO(), Customer.class));
-        // save shipping address
-        Address shippingAddr = modelMapper
-                .map(orderRequestDTO.getAddress(), Address.class);
-        shippingAddr.setCustomer(customerDb);
-        Address addressDb = addressRepository.save(shippingAddr);
+        // if new customer
+        if (customer == null) {
+            log.info("== new Customer");
+            customer = CustomerMapper.toEntity(customerDTO);
+            customer = customerRepository.save(customer);
 
-        //Order creation
-        Order order = modelMapper.map(orderRequestDTO.getOrderDTO(), Order.class);
-        try {
-            Order fromRazor = createPayment(order.getTotalPrice(), "INR", order.getEmail());
-            order.setOrderStatus(fromRazor.getOrderStatus());
-            order.setRazorpayOrderId(fromRazor.getRazorpayOrderId());
-            order.setOrderTrackingNumber(fromRazor.getOrderTrackingNumber());
-            order.setDeliveryDate(LocalDate.now().plusDays(7));
-        } catch (Exception e) {
-            e.printStackTrace();
+            address.setCustomer(customer); // ASSOCIATE MAPPING
+            address = addressRepository.save(address);
+        } else {
+            if (addressDTO.getAddressId() == null) {
+                log.info("== new Address");
+                address.setCustomer(customer); // ASSOCIATE MAPPING
+                address = addressRepository.save(address);
+            } else {
+                address = addressRepository.findById(addressDTO.getAddressId()).get();
+            }
         }
-        order.setCustomer(customerDb);
-        order.setAddress(shippingAddr);
-        if (order.getRazorpayOrderId() != null && order.getRazorpayOrderId() != "") {
-            Order orderDb = orderRepository.save(order);
-            List<OrderItem> orderItemList = orderRequestDTO.getOrderItemDTOS().stream().map(item ->
-                    {
-                        OrderItem orderItem = modelMapper.map(item, OrderItem.class);
-                        orderItem.setOrder(orderDb);
-                        return orderItem;
-                    }
-            ).toList();
-            List<OrderItem> orderItemsDb = orderItemRepository.saveAll(orderItemList);
+        OrderDTO orderDTO = orderRequestDTO.getOrderDTO();
+        Order order = OrderMapper.toEntity(orderDTO);
+        // build Order
+        String razorpayOrderId = razorPayClientService.createPayment(orderDTO.getTotalPrice(), "INR", orderDTO.getCustomerEmail());
+        log.info("== Razorpay OrderId" + razorpayOrderId);
+        order.setRazorpayOrderId(razorpayOrderId);
+        order.setOrderStatus("CREATED");
+        order.setOrderTrackingNum(generateTrackingNum());
+        order.setPaymentStatus("PENDING");
+
+        order.setCustomerEntity(customer); // ASSOCIATE MAPPING
+        order.setShippingAddress(address); // ASSOCIATE MAPPING
+        Order save = orderRepository.save(order);
+        log.info("== Order Created");
+        // orderItemDto to entity
+        List<OrderItem> list = orderRequestDTO.getOrderItemDTOList().stream()
+                .map(itemDto -> {
+                    OrderItem entity = OrderItemMapper.toEntity(itemDto);
+                    entity.setOrder(save); // ASSOCIATE MAPPING
+                    return entity;
+                }).toList();
+
+        //save orderItem
+        orderItemRepository.saveAll(list);
+
+        // Preparing Final Order Response
+        OrderResponseDTO orderResponse = new OrderResponseDTO();
+        orderResponse.setOrderStatus(save.getOrderStatus());
+        orderResponse.setRazorpayOrderId(save.getRazorpayOrderId());
+        orderResponse.setOrderTrackingNumber(save.getOrderTrackingNum());
+        orderResponse.setPaymentStatus(save.getPaymentStatus());
+        return orderResponse;
+    }
+
+    @Override
+    public OrderResponseDTO updateOrder(UpdateOrderDTO updateOrderDTO) {
+
+        Order order = orderRepository.findByOrderTrackingNum(updateOrderDTO.getOrderTrackingNum());
+        log.info("== " + updateOrderDTO.getOrderTrackingNum());
+
+        if (order == null) {
+            throw new RuntimeException("No Order Found");
+        }
+        if (updateOrderDTO.getRazorpayPaymentId() != null) {
+            order.setOrderStatus("CONFIRMED");
+            order.setPaymentStatus("COMPLETED");
+            order.setRazorpayPaymentId(updateOrderDTO.getRazorpayPaymentId());
+            order = orderRepository.save(order);
         }
 
+        OrderResponseDTO orderResponse = new OrderResponseDTO();
+        orderResponse.setRazorpayOrderId(order.getRazorpayOrderId());
+        orderResponse.setOrderStatus(order.getOrderStatus());
+        orderResponse.setOrderTrackingNumber(order.getOrderTrackingNum());
+        orderResponse.setPaymentStatus(order.getPaymentStatus());
+        orderResponse.setRazorpayPaymentId(order.getRazorpayPaymentId());
+        return orderResponse;
+    }
+
+    @Override
+    public OrderResponseDTO cancleOrder(String orderTrackingNumber) throws RazorpayException {
+        Order order = orderRepository.findByOrderTrackingNum(orderTrackingNumber);
+
+        String status = razorPayClientService.refundPayment(order.getRazorpayPaymentId(), order.getTotalPrice().intValue()*100);
+
+        order.setOrderStatus("CANCELED");
+        order.setPaymentStatus("REFUND IN PROCESS");
+        order.setDeliveyDate(null);
+        order = orderRepository.save(order);
 
         OrderResponseDTO orderResponseDTO = new OrderResponseDTO();
         orderResponseDTO.setRazorpayOrderId(order.getRazorpayOrderId());
-        orderResponseDTO.setOrderStatus(order.getOrderStatus());
-        orderResponseDTO.setOrderTrackingNumber(order.getOrderTrackingNumber());
-
+        orderResponseDTO.setOrderTrackingNumber(orderTrackingNumber);
+        orderResponseDTO.setOrderStatus("CANCELED");
+        orderResponseDTO.setRazorpayPaymentId(order.getRazorpayPaymentId());
         return orderResponseDTO;
     }
 
-    public boolean updateOrder(UpdateOrderDTO updateOrderDTO) {
-        Order order = orderRepository.findByRazorpayOrderId(updateOrderDTO.getRazorpayOrderId());
-        order.setOrderStatus("PAID");
-        orderRepository.save(order);
-        return true;
+    @Override
+    public List<OrderDTO> getCustomerOrders(String customerEmail) {
+        List<Order> list = orderRepository.findByCustomerEmail(customerEmail);
+        return list.stream().map(OrderMapper::toDto).toList();
     }
 
-    public boolean cancleOrder(UpdateOrderDTO updateOrderDTO) {
-        Order order = orderRepository.findByRazorpayOrderId(updateOrderDTO.getRazorpayOrderId());
-        order.setOrderStatus("CANCLED");
-        orderRepository.save(order);
-        return true;
-    }
+    private String generateTrackingNum() {
 
-    private Order createPayment(double amount, String currency, String receipt) throws Exception {
-        RazorpayClient razorpayClient = new RazorpayClient(razorpayKeyId, razorpayKeySecret);
-
-        JSONObject orderRequest = new JSONObject();
-        orderRequest.put("amount", amount * 100); // amount in paise (INR 100 = 10000 paise)
-        orderRequest.put("currency", currency);
-        orderRequest.put("receipt", receipt);
-
-        com.razorpay.Order order = razorpayClient.orders.create(orderRequest);
-
-        log.info(order.toString());
-
-        Order orderEntity = new Order();
-
-        orderEntity.setRazorpayOrderId(order.get("id"));
-        orderEntity.setOrderStatus(order.get("status"));
-        String trackingId = UUID.randomUUID().toString();
-
-        log.info("tracking id === : " + trackingId);
-        orderEntity.setOrderTrackingNumber(trackingId);
-
-        return orderEntity;
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
+        String datePart = sdf.format(new Date());
+        String randomStr = UUID.randomUUID().toString().substring(0, 5).toUpperCase();
+        return "OD" + datePart + randomStr;
     }
 }
 

@@ -10,7 +10,7 @@ public interface ProductService {
 
     public List<ProductDto> allProductByCategoryId(Integer categoryId);
 
-    public List<ProductDto> allMatchByKeywords(String keyword);
+    public List<ProductDto> allProductByKeywords(String keyword);
 
     public ProductDto productByProductId(Integer productId);
 

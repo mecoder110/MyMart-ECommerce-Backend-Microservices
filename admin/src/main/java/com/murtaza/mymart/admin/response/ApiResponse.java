@@ -1,4 +1,4 @@
-package com.murtaza.mymart.order.model;
+package com.murtaza.mymart.admin.response;
 
 import lombok.Data;
 

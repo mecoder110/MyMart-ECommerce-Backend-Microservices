@@ -23,7 +23,7 @@ public class AddressServiceImpl implements AddressService {
 
 
     @Override
-    public boolean saveAddress(ShippingAddressDto addressDto) {
+    public boolean saveAddress(ShippingAddressDto addressDto, Integer customerId) {
 
         Customer customer = customerRepository.findById(addressDto.getCustomerId()).orElseThrow(
                 () -> new RuntimeException("Not found")
@@ -46,7 +46,7 @@ public class AddressServiceImpl implements AddressService {
     }
 
     @Override
-    public List<ShippingAddressDto> retrieveAddressByCustomerId(Integer customerId) {
+    public List<ShippingAddressDto> getCustomerAddress(Integer customerId) {
 
         return shippingAddressRepository.findByCustomerCustomerId(customerId)
                 .stream().map(addr ->
@@ -56,7 +56,7 @@ public class AddressServiceImpl implements AddressService {
     }
 
     @Override
-    public ShippingAddressDto retrieveAddressById(Integer addressId) {
+    public ShippingAddressDto getAddress(Integer addressId) {
         ShippingAddress shippingAddress = shippingAddressRepository.findById(addressId).orElseThrow(() ->
                 new RuntimeException(""));
 
@@ -64,8 +64,11 @@ public class AddressServiceImpl implements AddressService {
     }
 
     @Override
-    public boolean deleteAddressById(Integer addressId) {
-        shippingAddressRepository.deleteById(addressId);
+    public boolean deleteAddress(Integer addressId) {
+        ShippingAddress shippingAddress = shippingAddressRepository.findById(addressId).orElseThrow(() -> new NullPointerException());
+        shippingAddress.setDeleteSw(true);
+        shippingAddressRepository.save(shippingAddress);
+
         return true;
     }
 }

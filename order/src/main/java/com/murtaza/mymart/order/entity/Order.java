@@ -6,7 +6,6 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.sql.Timestamp;
 import java.time.LocalDate;
 
 @Entity
@@ -17,25 +16,40 @@ public class Order {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-    private String email;
-    private double totalPrice;
-    private int totalQuantity;
-    @CreationTimestamp
-    private Timestamp createdAt;
-    @UpdateTimestamp
-    private Timestamp updatedAt;
+    private Integer orderId;
+
+    private String orderTrackingNum;
+
+    private Double totalPrice;
+
+    private Integer totalQuantity;
+
+    private String orderStatus;
+
+    private LocalDate deliveyDate;
+
+    private String paymentStatus;
 
     private String razorpayOrderId;
-    private String orderStatus;
-    private String orderTrackingNumber;
 
-    private LocalDate deliveryDate;
+    private String razorpayPaymentId;
+
+    @CreationTimestamp
+    @Column(name = "date_created", updatable = false)
+    private LocalDate createdDate;
+
+    @UpdateTimestamp
+    @Column(name = "date_updated", insertable = false)
+    private LocalDate lastUpdate;
+
+    private String customerEmail;
+
     @ManyToOne
     @JoinColumn(name = "customer_id")
-    private Customer customer;
+    private CustomerEntity customerEntity;
+
     @ManyToOne
     @JoinColumn(name = "address_id")
-    private Address address;
+    private ShippingAddress shippingAddress;
 
 }

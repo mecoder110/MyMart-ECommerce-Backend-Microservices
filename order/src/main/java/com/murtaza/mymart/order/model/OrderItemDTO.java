@@ -5,8 +5,9 @@ import lombok.Data;
 @Data
 public class OrderItemDTO {
 
-    private int quantity;
-    private double unitPrice;
+    private Integer itemId;
     private String imageUrl;
+    private Integer quantity;
+    private Double unitPrice;
     private String productName;
 }

@@ -33,7 +33,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductDto> allMatchByKeywords(String keyword) {
+    public List<ProductDto> allProductByKeywords(String keyword) {
         List<Product> filterProduct = productRepository.findByProductNameContainingIgnoreCaseOrDescriptionContainingIgnoreCaseOrTitleContainingIgnoreCase(keyword, keyword, keyword);
         return filterProduct.stream().map(product ->
                 modelMapper.map(product, ProductDto.class)).toList();
